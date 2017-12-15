@@ -12,6 +12,7 @@ import java.util.List;
 public class Data {
     public static final String WEBSITE_URL = "https://www.reddit.com/r/NHKEasyNews/";
     public static final String DOMAIN = "https://www.reddit.com";
+    public static final char POINT = '。';
 
     public List<String> getLinks() {
         List<String> links = new ArrayList<>();
@@ -25,7 +26,6 @@ public class Data {
                 String linkTitle = DOMAIN + linkHref;
                 links.add(linkTitle);
             }
-//            links.remove(0);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -46,5 +46,40 @@ public class Data {
             e.printStackTrace();
         }
         return titles;
+    }
+
+    public String getContent(int i) {
+        String link = getLinks().get(i);
+        String content = "No content";
+        try {
+            Document document = Jsoup.connect(link).get();
+            Element element = document.getElementsByClass("expando").first();
+            content = element.text();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return content;
+    }
+
+    public String formatContent(String content) {
+        String[] splitArr1 = content.split("html");
+        String[] splitArr2 = splitArr1[1].split("I");
+        String[] cutContentArr = splitArr2[0].split(String.valueOf(Data.POINT));
+        int lines = cutContentArr.length;
+        String result = "";
+        String line;
+        for (int i = 0; i < lines - 1; i++) {
+            line = cutContentArr[i].trim() + Data.POINT;
+            result = result.concat(line + '\n' + '\n' +'\n');
+        }
+        return result;
+    }
+
+    public String getDateSt(String title) {
+        return title.substring(1, 11);
+    }
+
+    public String getTitle(String title) {
+        return title.substring(12);
     }
 }
