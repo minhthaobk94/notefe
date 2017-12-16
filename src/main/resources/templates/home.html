@@ -37,6 +37,7 @@
                    class="list-group-item list-group-item-action flex-column align-items-start">
                     <h6 th:text="${news.getTitle()}"></h6>
                     <small class="pull-right" th:text="${news.getDate()}"></small>
+                    <span th:if="${isToday == true}" class="badge badge-danger">New</span>
                 </a>
             </div>
         </div>

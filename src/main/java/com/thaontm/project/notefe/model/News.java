@@ -13,9 +13,6 @@ public class News {
         this.date = date;
     }
 
-    public News() {
-    }
-
     public News(int id, String title) {
         this.id = id;
         this.title = title;

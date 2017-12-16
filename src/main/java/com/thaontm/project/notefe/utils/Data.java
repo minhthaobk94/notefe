@@ -6,7 +6,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class Data {
@@ -26,6 +29,7 @@ public class Data {
                 String linkTitle = DOMAIN + linkHref;
                 links.add(linkTitle);
             }
+            links.remove(0);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,6 +46,7 @@ public class Data {
                 String title = element.select("a").first().text();
                 titles.add(title);
             }
+            titles.remove(0);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -70,16 +75,49 @@ public class Data {
         String line;
         for (int i = 0; i < lines - 1; i++) {
             line = cutContentArr[i].trim() + Data.POINT;
-            result = result.concat(line + '\n' + '\n' +'\n');
+            result = result.concat(line + '\n' + '\n' + '\n');
         }
         return result;
     }
 
     public String getDateSt(String title) {
-        return title.substring(1, 11);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy");
+        Date date = parseDate(title.substring(1, 11));
+        return formatter.format(date);
     }
 
     public String getTitle(String title) {
         return title.substring(12);
+    }
+
+    public Date parseDate(String dateSt) {
+        Date date = null;
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+        try {
+            date = formatter.parse(dateSt);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
+    }
+
+    public Date parseDate1(String dateSt) {
+        Date date = null;
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy");
+        try {
+            date = formatter.parse(dateSt);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
+    }
+
+
+    public static boolean isToday(Date date) {
+        Date today = new Date();
+        if (!date.equals(today)) {
+            return false;
+        } else
+            return true;
     }
 }

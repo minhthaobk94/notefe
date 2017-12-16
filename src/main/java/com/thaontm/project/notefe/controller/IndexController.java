@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -15,21 +16,25 @@ import java.util.Map;
 public class IndexController {
     Data data = new Data();
     List<News> newsList = new ArrayList<>();
+    boolean isToday;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String getHomepage(Map<String, Object> model) {
         List<String> titles = data.getTitles();
         int size = titles.size();
-        for (int i = 1; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             String topic = titles.get(i);
             String title = data.getTitle(topic);
             String date = data.getDateSt(topic);
             News news = new News(i, title, date);
+            Date date1 = data.parseDate1(date);
+            isToday = data.isToday(date1);
             newsList.add(news);
         }
         model.put("newsList", newsList);
         model.put("title", newsList.get(0).getTitle());
-        model.put("content", data.formatContent(data.getContent(1)));
+        model.put("content", data.formatContent(data.getContent(0)));
+        model.put("isToday", isToday);
         return "home";
     }
 
@@ -38,6 +43,7 @@ public class IndexController {
         model.put("newsList", newsList);
         model.put("title", newsList.get(index).getTitle());
         model.put("content", data.formatContent(data.getContent(index)));
+        model.put("isToday", isToday);
         return "home";
     }
 }
