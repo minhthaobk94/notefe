@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>NHK - Easy News Reading</title>
+
+    <!-- Bootstrap core css -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <!-- Custom styles for this template -->
+    <link href="/css/shop-homepage.css" rel="stylesheet"/>
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<div th:replace="fragments/header :: header"></div>
+
+
+<!-- Page Content -->
+<div class="container-fluid">
+
+    <div class="row">
+
+        <div class="col-lg-3">
+
+            <h1 class="my-4">Topics</h1>
+            <div class="list-group" th:each="news : ${newsList}" th:value="${newsList}">
+                <a th:href="@{'/' + ${news.getId()}}"
+                   class="list-group-item list-group-item-action flex-column align-items-start">
+                    <h6 th:text="${news.getTitle()}"></h6>
+                    <small class="pull-right" th:text="${news.getDate()}"></small>
+                    <span th:if="${isToday == true}" class="badge badge-danger">New</span>
+                </a>
+            </div>
+        </div>
+        <!-- /.col-lg-3 -->
+
+        <div class="col-lg-6">
+
+            <h3 class="my-4" th:text="${title}"></h3>
+            <textarea class="col-lg-12" onkeyup="textAreaAdjust(this)" style="overflow:hidden"
+                      th:text="${content}"></textarea>
+            <button type="submit" class="btn btn-success">Save</button>
+        </div>
+        <!-- /.col-lg-6 -->
+        <script>
+            function textAreaAdjust(o) {
+                o.style.height = "1px";
+                o.style.height = (25 + o.scrollHeight) + "px";
+            }
+        </script>
+
+        <div class="col-lg-3">
+            <h1 class="my-4">Vocabulary</h1>
+            <div>
+                <form>
+                    <div class="form-group">
+                        <label for="vocab">Word</label>
+                        <input type="text" class="form-control" id="vocab" placeholder="Password"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="meaning">Meaning</label>
+                        <textarea class="form-control" id="meaning" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+                <div class="dropdown-divider"></div>
+            </div>
+            <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">words</h6>
+                    </div>
+                    <p class="mb-1">meaning</p>
+                </a>
+            </div>
+        </div>
+
+    </div>
+    <!-- /.row -->
+
+</div>
+<!-- /.container -->
+
+<!-- Footer -->
+<div th:replace="fragments/footer :: footer"></div>
+
+<!-- Bootstrap core JavaScript -->
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
