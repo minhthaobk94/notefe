@@ -1,4 +1,7 @@
 package com.thaontm.project.notefecore.dao;
 
-public class PostDao {
+import com.thaontm.project.notefecore.model.Post;
+import org.springframework.data.repository.CrudRepository;
+
+public interface PostDao extends CrudRepository<Post, Long> {
 }

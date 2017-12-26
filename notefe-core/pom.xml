@@ -39,7 +39,6 @@
             <artifactId>mysql-connector-java</artifactId>
             <scope>runtime</scope>
         </dependency>
-
     </dependencies>
 
 </project>

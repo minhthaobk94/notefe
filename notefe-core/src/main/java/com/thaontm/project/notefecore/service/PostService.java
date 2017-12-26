@@ -1,4 +1,6 @@
 package com.thaontm.project.notefecore.service;
 
-public class PostService {
+import com.thaontm.project.notefecore.model.Post;
+
+public interface PostService extends BaseService<Post, Long> {
 }
