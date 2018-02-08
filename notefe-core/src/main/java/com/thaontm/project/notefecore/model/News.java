@@ -1,5 +1,6 @@
 package com.thaontm.project.notefecore.model;
 
+@Deprecated
 public class News {
     private int id;
 

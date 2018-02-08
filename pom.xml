@@ -23,7 +23,6 @@
 
     <modules>
         <module>notefe-core</module>
-        <module>notefe-web</module>
         <module>notefe-scrapper</module>
     </modules>
 
