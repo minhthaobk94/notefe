@@ -17,6 +17,15 @@ public class SegmentType extends AbstractEntity {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "segmentType")
     private Set<Segment> segments;
 
+    public SegmentType() {
+        super();
+    }
+
+    public SegmentType(final String type) {
+        super();
+        this.text = type;
+    }
+
     public String getText() {
         return text;
     }
