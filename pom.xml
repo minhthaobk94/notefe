@@ -22,6 +22,7 @@
     </properties>
 
     <modules>
+        <module>notefe-app</module>
         <module>notefe-core</module>
         <module>notefe-scrapper</module>
     </modules>
@@ -33,6 +34,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 
 </project>
