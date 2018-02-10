@@ -1,10 +1,18 @@
 package com.thaontm.project.notefeapp.backend;
 
+import com.thaontm.project.notefeapp.backend.utils.TestData;
+import com.thaontm.project.notefecore.service.LanguageService;
+import com.thaontm.project.notefecore.service.PostService;
+import com.thaontm.project.notefecore.service.SegmentService;
+import com.thaontm.project.notefecore.service.SegmentTypeService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.web.WebMvcRegistrationsAdapter;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -16,6 +24,8 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import java.lang.reflect.Method;
 
 @SpringBootApplication
+@EntityScan("com.thaontm.project.notefecore.model")
+@ComponentScan(basePackages = {"com.thaontm.project.notefecore", "com.thaontm.project.notefeapp"})
 public class NotefeWebApplication {
 
     @Value("${rest.api.base.path}")
@@ -23,6 +33,16 @@ public class NotefeWebApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(NotefeWebApplication.class, args);
+    }
+
+    @Bean
+    public CommandLineRunner commandLineRunner(PostService postService, SegmentTypeService segmentTypeService, SegmentService segmentService, LanguageService languageService) {
+        return (args) -> {
+            TestData.addLanguage(languageService);
+            TestData.addSegmentType(segmentTypeService);
+            TestData.addPost(postService);
+            TestData.addSegment(postService, segmentService, segmentTypeService);
+        };
     }
 
     @Bean
