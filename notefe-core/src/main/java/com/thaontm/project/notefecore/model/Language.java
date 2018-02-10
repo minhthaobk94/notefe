@@ -20,6 +20,16 @@ public class Language extends AbstractEntity {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "language")
     private Set<Translation> translations;
 
+    public Language() {
+        super();
+    }
+
+    public Language(final String code, final String text) {
+        super();
+        this.code = code;
+        this.text = text;
+    }
+
     public String getCode() {
         return code;
     }
@@ -50,7 +60,6 @@ public class Language extends AbstractEntity {
         sb.append("id=").append(getId());
         sb.append(", code='").append(code).append('\'');
         sb.append(", text='").append(text).append('\'');
-        sb.append(", translations=").append(translations);
         sb.append('}');
         return sb.toString();
     }

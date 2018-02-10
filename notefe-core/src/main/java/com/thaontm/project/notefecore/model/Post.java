@@ -1,5 +1,7 @@
 package com.thaontm.project.notefecore.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +14,7 @@ import java.util.Set;
 @Table(name = "post")
 public class Post extends AbstractEntity {
 
+    @JsonManagedReference
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "post")
     private Set<Segment> segments;
 
@@ -26,6 +29,18 @@ public class Post extends AbstractEntity {
 
     @Column(name = "audio_url")
     private String audioURL;
+
+    public Post() {
+        super();
+    }
+
+    public Post(final String link, final Date submitted, final String imageURL, final String audioURL) {
+        super();
+        this.link = link;
+        this.submitted = submitted;
+        this.imageURL = imageURL;
+        this.audioURL = audioURL;
+    }
 
     public String getLink() {
         return link;
@@ -67,7 +82,6 @@ public class Post extends AbstractEntity {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Post{");
         sb.append("id=").append(getId());
-        sb.append(", segments=").append(segments);
         sb.append(", link='").append(link).append('\'');
         sb.append(", submitted=").append(submitted);
         sb.append(", imageURL='").append(imageURL).append('\'');

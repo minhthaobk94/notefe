@@ -1,5 +1,7 @@
 package com.thaontm.project.notefecore.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +16,7 @@ public class SegmentType extends AbstractEntity {
     @Column(name = "[text]")
     private String text;
 
+    @JsonManagedReference
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "segmentType")
     private Set<Segment> segments;
 
@@ -47,7 +50,6 @@ public class SegmentType extends AbstractEntity {
         final StringBuilder sb = new StringBuilder("SegmentType{");
         sb.append("id=").append(getId());
         sb.append(", text='").append(text).append('\'');
-        sb.append(", segments=").append(segments);
         sb.append('}');
         return sb.toString();
     }

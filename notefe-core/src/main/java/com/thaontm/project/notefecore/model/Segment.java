@@ -1,5 +1,8 @@
 package com.thaontm.project.notefecore.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,9 +15,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "[segment]")
-public class Segment extends AbstractEntity implements Serializable{
-
-
+public class Segment extends AbstractEntity implements Serializable {
 
     @Column(name = "[index]", nullable = false)
     private Long index;
@@ -22,16 +23,30 @@ public class Segment extends AbstractEntity implements Serializable{
     @Column(name = "[text]", nullable = false)
     private String text;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     private Post post;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "segment_type_id", referencedColumnName = "id")
     private SegmentType segmentType;
 
+    @JsonManagedReference
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "segment")
     private Set<Translation> translations;
+
+    public Segment() {
+        super();
+    }
+
+    public Segment(Long index, String text, Post post, SegmentType segmentType) {
+        this.index = index;
+        this.text = text;
+        this.post = post;
+        this.segmentType = segmentType;
+    }
 
     public Set<Translation> getTranslations() {
         return translations;
@@ -80,8 +95,6 @@ public class Segment extends AbstractEntity implements Serializable{
         sb.append(", index=").append(index);
         sb.append(", text='").append(text).append('\'');
         sb.append(", post=").append(post);
-        sb.append(", segmentType=").append(segmentType);
-        sb.append(", translations=").append(translations);
         sb.append('}');
         return sb.toString();
     }

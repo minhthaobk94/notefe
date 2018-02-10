@@ -1,5 +1,7 @@
 package com.thaontm.project.notefecore.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -13,10 +15,12 @@ public class Translation extends AbstractEntity {
     @Column(name = "[text]")
     private String text;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "segment_id", referencedColumnName = "id")
     private Segment segment;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "language_id", referencedColumnName = "id")
     private Language language;
@@ -50,8 +54,6 @@ public class Translation extends AbstractEntity {
         final StringBuilder sb = new StringBuilder("Translation{");
         sb.append("id=").append(getId());
         sb.append(", text='").append(text).append('\'');
-        sb.append(", segment=").append(segment);
-        sb.append(", language=").append(language);
         sb.append('}');
         return sb.toString();
     }
