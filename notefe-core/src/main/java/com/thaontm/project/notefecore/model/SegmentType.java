@@ -1,5 +1,6 @@
 package com.thaontm.project.notefecore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.CascadeType;
@@ -16,7 +17,7 @@ public class SegmentType extends AbstractEntity {
     @Column(name = "[text]")
     private String text;
 
-    @JsonManagedReference
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "segmentType")
     private Set<Segment> segments;
 

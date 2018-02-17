@@ -28,7 +28,6 @@ public class Segment extends AbstractEntity implements Serializable {
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     private Post post;
 
-    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "segment_type_id", referencedColumnName = "id")
     private SegmentType segmentType;
