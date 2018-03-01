@@ -1,0 +1,11 @@
+ul {
+  list-style-type: none;
+}
+
+.post-link {
+  text-overflow: initial;
+}
+
+.list-group-item:focus-within {
+  background-color: #fcf8e3;
+}

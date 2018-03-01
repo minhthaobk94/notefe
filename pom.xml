@@ -22,17 +22,9 @@
     </properties>
 
     <modules>
-        <module>notefe-app</module>
-        <module>notefe-core</module>
-        <module>notefe-scrapper</module>
+        <module>backend</module>
+        <module>frontend</module>
     </modules>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
 </project>
+
