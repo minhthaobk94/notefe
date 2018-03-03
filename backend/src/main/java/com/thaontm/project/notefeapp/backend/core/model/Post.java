@@ -14,7 +14,7 @@ import java.util.Set;
 @Table(name = "post")
 public class Post extends AbstractEntity {
 
-    private Long segmentIndex = 0L;
+    private long segmentIndex = 0L;
 
     @JsonManagedReference
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "post")
@@ -95,7 +95,7 @@ public class Post extends AbstractEntity {
         this.nhkEasyId = nhkEasyId;
     }
 
-    public Long getSegmentIndex() {
+    public long getSegmentIndex() {
         return segmentIndex++;
     }
 

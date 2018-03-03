@@ -69,10 +69,10 @@ public class Scrapper {
         return posts;
     }
 
-    private Post getPostByLink(final String link) throws IOException, ParseException {
+    private Post getPostByLink(final String redditLink) throws IOException, ParseException {
         final Post post = new Post();
         final Set<Segment> segments = new HashSet<>();
-        final Document doc = Jsoup.connect(link).get();
+        final Document doc = Jsoup.connect(redditLink).get();
 
         final Element postTitleElement = doc.selectFirst("div#siteTable")
             .selectFirst("p.title")
@@ -88,7 +88,7 @@ public class Scrapper {
         final Element contentBoxElement = doc.selectFirst("div#siteTable").selectFirst("div.md");
         final String postLink = contentBoxElement.selectFirst("a").text();
         post.setLink(postLink);
-        post.setNhkEasyId(extractIdFromLink(link));
+        post.setNhkEasyId(extractIdFromLink(postLink));
         log.info(postLink);
 
         final Elements segmentsElements = contentBoxElement.getElementsByTag("p");
@@ -98,6 +98,7 @@ public class Scrapper {
             } else {
                 final Segment segment = new Segment();
                 segment.setText(segmentsElements.get(i).text());
+                segment.setIndex(post.getSegmentIndex());
                 segment.setSegmentType(new SegmentType("body"));
 
                 segments.add(segment);
@@ -111,11 +112,11 @@ public class Scrapper {
     /**
      * link must be like this: http://www3.nhk.or.jp/news/easy/k10011339591000/k10011339591000.html.
      */
-    private String extractIdFromLink(final String link) {
-        if (link == null) return "";
+    private String extractIdFromLink(final String postLink) {
+        if (postLink == null) return "";
         else {
-            return link.replace("http://www3.nhk.or.jp/news/easy/", "")
-                .replace("", ".html")
+            return postLink.replace("http://www3.nhk.or.jp/news/easy/", "")
+                .replace(".html", "")
                 .split("/")[0];
         }
     }

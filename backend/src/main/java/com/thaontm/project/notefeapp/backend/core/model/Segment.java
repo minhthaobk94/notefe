@@ -18,7 +18,7 @@ import java.util.Set;
 public class Segment extends AbstractEntity implements Serializable {
 
     @Column(name = "[index]", nullable = false)
-    private Long index;
+    private long index;
 
     @Column(name = "[text]", nullable = false)
     private String text;
@@ -40,7 +40,7 @@ public class Segment extends AbstractEntity implements Serializable {
         super();
     }
 
-    public Segment(Long index, String text, Post post, SegmentType segmentType) {
+    public Segment(long index, String text, Post post, SegmentType segmentType) {
         this.index = index;
         this.text = text;
         this.post = post;
@@ -55,11 +55,11 @@ public class Segment extends AbstractEntity implements Serializable {
         this.translations = translations;
     }
 
-    public Long getIndex() {
+    public long getIndex() {
         return index;
     }
 
-    public void setIndex(Long index) {
+    public void setIndex(long index) {
         this.index = index;
     }
 
