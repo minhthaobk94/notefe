@@ -5,6 +5,7 @@ import {
 import { PostService } from '../service/post.service';
 import { Post } from '../shared/models/Post';
 import { Segment } from '../shared/models/Segment';
+import { saveAs } from 'file-saver/FileSaver';
 
 @Component({
   selector: 'app-posts',
@@ -15,12 +16,15 @@ export class PostsComponent implements OnInit {
 
   posts: Post[];
   selectedPost: Post;
+  translations: string[];
+  showPreview: boolean = false;
 
   constructor(private postService: PostService) {
   }
 
   ngOnInit() {
     this.getPosts();
+    this.translations = [];
   }
 
   getPosts(): void {
@@ -36,6 +40,50 @@ export class PostsComponent implements OnInit {
 
   onSelect(post: Post) {
     this.selectedPost = post;
+    this.translations = [];
   }
+
+  onShowPreview(): void {
+    this.updateTranslations();
+
+    this.showPreview = !this.showPreview;
+  }
+
+  onSubmit(): void {
+    this.updateTranslations();
+
+    this.saveToFileSystem(this.buildTextContent(this.selectedPost));
+    console.log(this.buildTextContent(this.selectedPost));
+  }
+
+  saveToFileSystem(content: string) {
+    const blob = new Blob([content], {type: 'text/plain'});
+    saveAs(blob, 'NHK-Easy-Translation-' + this.selectedPost.submitted + '.txt');
+  }
+
+  updateTranslations() {
+    let segments = this.selectedPost.segments;
+    for (let segment of segments) {
+      if (!segment.translations) {
+        segment.translations = [];
+      }
+      segment.translations[0] = this.translations[segment.index];
+    }
+  }
+
+  buildTextContent(post: Post): string {
+    let result: string = '';
+    for (let segment of post.segments) {
+      result = result + segment.text;
+      result = result + "\n";
+      result = result + segment.translations;
+      result = result + "\n\n";
+    }
+    return result;
+  }
+
+  // buildHtmlContent(post: Post) {
+  //   return this.buildTextContent(post).replace(/(?:\r\n|\r|\n)/g, '<br />');
+  // }
 
 }

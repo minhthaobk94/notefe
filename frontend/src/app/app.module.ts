@@ -5,6 +5,8 @@ import { AppComponent } from './app.component';
 import { PostsComponent } from './posts/posts.component';
 import { PostService } from './service/post.service';
 import { HttpClientModule } from '@angular/common/http';
+import { FormsModule} from '@angular/forms';
+import { ClipboardModule } from 'ngx-clipboard';
 
 @NgModule({
   declarations: [
@@ -13,7 +15,9 @@ import { HttpClientModule } from '@angular/common/http';
   ],
   imports: [
     BrowserModule,
-    HttpClientModule
+    HttpClientModule,
+    FormsModule,
+    ClipboardModule
   ],
   providers: [PostService],
   bootstrap: [AppComponent]

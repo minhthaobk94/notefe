@@ -4,7 +4,7 @@ export interface Post {
   id: number;
   segments: Segment[];
   link: string;
-  submitted: any;
+  submitted: Date;
   imageURL: string;
   audioURL: string;
 }
