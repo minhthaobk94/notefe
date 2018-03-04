@@ -62,7 +62,7 @@ public class Scrapper {
             }
         }
 
-        for (String link : links.subList(0, 7)) {
+        for (String link : links.subList(0, 10)) {
             posts.add(getPostByLink(link));
         }
 
