@@ -79,6 +79,9 @@ export class PostsComponent implements OnInit {
       result = result + segment.translations;
       result = result + "\n\n";
     }
+    result = result + post.link;
+    result = result + "\n\n";
+
     return result;
   }
 
