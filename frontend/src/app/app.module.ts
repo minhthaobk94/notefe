@@ -7,6 +7,7 @@ import { PostService } from './service/post.service';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule} from '@angular/forms';
 import { ClipboardModule } from 'ngx-clipboard';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { ClipboardModule } from 'ngx-clipboard';
     BrowserModule,
     HttpClientModule,
     FormsModule,
-    ClipboardModule
+    ClipboardModule,
+    NgbModule.forRoot()
   ],
   providers: [PostService],
   bootstrap: [AppComponent]

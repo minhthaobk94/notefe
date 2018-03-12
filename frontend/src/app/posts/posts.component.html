@@ -18,7 +18,7 @@
             </div>
           </li>
           <li class="list-group-item list-group-item-action">
-            <button type="submit" class="btn btn-outline-primary float-right" (click)="onSubmit()">Save</button>
+            <button type="submit" class="btn btn-outline-primary float-right" (click)="onSubmit()">Download</button>
             <button type="button" class="btn btn-outline-warning float-left" (click)="onShowPreview()" data-toggle="modal" data-target="#exampleModalLong">Preview</button>
           </li>
         </ul>
@@ -35,7 +35,7 @@
               </div>
               <textarea class="modal-body" rows="15" #inputTarget>{{buildTextContent(selectedPost)}}</textarea>
               <div class="modal-footer">
-                <button type="button" class="btn btn-primary" [ngxClipboard]="inputTarget">Copy</button>
+                <button type="button" class="btn btn-primary" [ngxClipboard]="inputTarget" placement="top" ngbPopover="Copied !" #p="ngbPopover" (document:click)="p.close()" (click)="$event.stopPropagation()" >Copy</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
               </div>
             </div>
