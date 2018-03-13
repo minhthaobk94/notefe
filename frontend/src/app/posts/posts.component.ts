@@ -58,7 +58,7 @@ export class PostsComponent implements OnInit {
 
   saveToFileSystem(content: string) {
     const blob = new Blob([content], {type: 'text/plain'});
-    saveAs(blob, 'NHK-Easy-Translation-' + this.selectedPost.submitted + '.txt');
+    saveAs(blob, this.selectedPost.segments[0].text + '.txt');
   }
 
   updateTranslations() {
