@@ -14,7 +14,7 @@
           <li *ngFor="let segment of selectedPost.segments" class="list-group-item list-group-item-action">
             <div class="form-group">
               <label for="exampleTextarea">{{segment.text}}</label>
-              <textarea [(ngModel)]="translations[segment.index]" class="form-control" id="exampleTextarea" placeholder="translation here" rows="2"></textarea>
+              <textarea [(ngModel)]="segment.viTranslation" class="form-control" id="exampleTextarea" placeholder="translation here" rows="2"></textarea>
             </div>
           </li>
           <li class="list-group-item list-group-item-action">

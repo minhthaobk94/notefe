@@ -76,7 +76,7 @@ export class PostsComponent implements OnInit {
     for (let segment of post.segments) {
       result = result + segment.text;
       result = result + "\n";
-      result = result + segment.translations;
+      result = result + segment.viTranslation;
       result = result + "\n\n";
     }
     result = result + post.link;
