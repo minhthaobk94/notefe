@@ -83,6 +83,7 @@ public class Scrapper {
             .selectFirst("a.title.may-blank");
         final Segment title = new Segment();
         title.setText(postTitleElement.text());
+        title.setViTranslation(getViTranslation(postTitleElement.text()));
         log.info(title.getText());
         log.info(getViTranslation(title.getText()));
         title.setIndex(post.getSegmentIndex());
@@ -143,7 +144,7 @@ public class Scrapper {
             TranslateOption.targetLanguage("vi")
         );
 
-        return translation.getTranslatedText();
+        return translation.getTranslatedText().replace("&quot;", "\"");
     }
 
     /**
