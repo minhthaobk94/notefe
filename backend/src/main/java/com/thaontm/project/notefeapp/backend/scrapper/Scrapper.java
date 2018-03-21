@@ -1,5 +1,9 @@
 package com.thaontm.project.notefeapp.backend.scrapper;
 
+import com.google.cloud.translate.Translate;
+import com.google.cloud.translate.Translate.TranslateOption;
+import com.google.cloud.translate.TranslateOptions;
+import com.google.cloud.translate.Translation;
 import com.thaontm.project.notefeapp.backend.core.model.Post;
 import com.thaontm.project.notefeapp.backend.core.model.Segment;
 import com.thaontm.project.notefeapp.backend.core.model.SegmentType;
@@ -49,7 +53,7 @@ public class Scrapper {
         return this.posts;
     }
 
-    public List<Post> scrapePosts() throws IOException, ParseException {
+    private List<Post> scrapePosts() throws IOException, ParseException {
         final List<Post> posts = new ArrayList<>();
         final Document doc = Jsoup.connect("https://www.reddit.com/r/NHKEasyNews/").get();
         final Elements segments = doc.select("div.entry > div.top-matter > p.title > a.title");
@@ -79,6 +83,8 @@ public class Scrapper {
             .selectFirst("a.title.may-blank");
         final Segment title = new Segment();
         title.setText(postTitleElement.text());
+        log.info(title.getText());
+        log.info(getViTranslation(title.getText()));
         title.setIndex(post.getSegmentIndex());
         title.setSegmentType(new SegmentType("title"));
         segments.add(title);
@@ -93,13 +99,12 @@ public class Scrapper {
 
         final Elements segmentsElements = contentBoxElement.getElementsByTag("p");
         for (int i = 0; i < segmentsElements.size(); i++) {
-            if (i == 0 || i == segmentsElements.size() - 1
-                || segmentsElements.get(i).text().trim().length() == 0) {
-            } else {
+            if (!(i == 0 || i == segmentsElements.size() - 1 || segmentsElements.get(i).text().trim().length() == 0)) {
                 final Segment segment = new Segment();
                 segment.setText(segmentsElements.get(i).text());
                 segment.setIndex(post.getSegmentIndex());
                 segment.setSegmentType(new SegmentType("body"));
+                segment.setViTranslation(getViTranslation(segment.getText()));
 
                 segments.add(segment);
             }
@@ -128,5 +133,25 @@ public class Scrapper {
     private Date extractDateFromTitle(final String title) throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("mm/DD/yyyy");
         return format.parse(title.trim().split(" ")[0].substring(1, 11));
+    }
+
+    private String getViTranslation(final String segmentText) {
+        Translate translate = createTranslateService();
+        Translation translation = translate.translate(
+            segmentText,
+            TranslateOption.sourceLanguage("ja"),
+            TranslateOption.targetLanguage("vi")
+        );
+
+        return translation.getTranslatedText();
+    }
+
+    /**
+     * Create Google Translate API Service.
+     *
+     * @return Google Translate Service
+     */
+    private Translate createTranslateService() {
+        return TranslateOptions.newBuilder().setApiKey("api_key").build().getService();
     }
 }

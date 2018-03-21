@@ -23,6 +23,9 @@ public class Segment extends AbstractEntity implements Serializable {
     @Column(name = "[text]", nullable = false)
     private String text;
 
+    @Column(name = "[vi_translation]")
+    private String viTranslation;
+
     @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "post_id", referencedColumnName = "id")
@@ -87,12 +90,21 @@ public class Segment extends AbstractEntity implements Serializable {
         this.post = post;
     }
 
+    public String getViTranslation() {
+        return viTranslation;
+    }
+
+    public void setViTranslation(final String viTranslation) {
+        this.viTranslation = viTranslation;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Segment{");
         sb.append("id=").append(getId());
-        sb.append(", index=").append(index);
-        sb.append(", text='").append(text).append('\'');
+        sb.append(", index=").append(getIndex());
+        sb.append(", text='").append(getText()).append('\'');
+        sb.append(", viTranslation='").append(getViTranslation()).append('\'');
         sb.append(", post=").append(post);
         sb.append('}');
         return sb.toString();
