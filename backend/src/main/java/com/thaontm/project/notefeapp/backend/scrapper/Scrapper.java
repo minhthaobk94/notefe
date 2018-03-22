@@ -83,9 +83,9 @@ public class Scrapper {
             .selectFirst("a.title.may-blank");
         final Segment title = new Segment();
         title.setText(postTitleElement.text());
-        title.setViTranslation(getViTranslation(postTitleElement.text()));
+        title.setViTranslation(getViTranslation(title.getText().substring(13)));
         log.info(title.getText());
-        log.info(getViTranslation(title.getText()));
+        log.info(title.getViTranslation());
         title.setIndex(post.getSegmentIndex());
         title.setSegmentType(new SegmentType("title"));
         segments.add(title);
