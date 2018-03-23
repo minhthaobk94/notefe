@@ -66,7 +66,7 @@ public class Scrapper {
             }
         }
 
-        for (String link : links.subList(0, 10)) {
+        for (final String link : links.subList(0, 10)) {
             posts.add(getPostByLink(link));
         }
 
@@ -132,13 +132,13 @@ public class Scrapper {
      * @return date from title
      */
     private Date extractDateFromTitle(final String title) throws ParseException {
-        SimpleDateFormat format = new SimpleDateFormat("mm/DD/yyyy");
+        final SimpleDateFormat format = new SimpleDateFormat("mm/DD/yyyy");
         return format.parse(title.trim().split(" ")[0].substring(1, 11));
     }
 
     private String getViTranslation(final String segmentText) {
-        Translate translate = createTranslateService();
-        Translation translation = translate.translate(
+        final Translate translate = createTranslateService();
+        final Translation translation = translate.translate(
             segmentText,
             TranslateOption.sourceLanguage("ja"),
             TranslateOption.targetLanguage("vi")
@@ -153,6 +153,9 @@ public class Scrapper {
      * @return Google Translate Service
      */
     private Translate createTranslateService() {
-        return TranslateOptions.newBuilder().setApiKey("api_key").build().getService();
+        return TranslateOptions.newBuilder()
+            .setApiKey("api_key")
+            .build()
+            .getService();
     }
 }
