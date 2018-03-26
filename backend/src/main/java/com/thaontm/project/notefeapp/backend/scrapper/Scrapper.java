@@ -4,9 +4,13 @@ import com.google.cloud.translate.Translate;
 import com.google.cloud.translate.Translate.TranslateOption;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
+import com.google.gson.Gson;
 import com.thaontm.project.notefeapp.backend.core.model.Post;
 import com.thaontm.project.notefeapp.backend.core.model.Segment;
 import com.thaontm.project.notefeapp.backend.core.model.SegmentType;
+import com.thaontm.project.notefeapp.backend.core.model.Vocabulary;
+import com.thaontm.project.notefeapp.backend.json.Morph;
+import com.thaontm.project.notefeapp.backend.json.VocabularyList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -17,11 +21,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -111,8 +118,65 @@ public class Scrapper {
             }
         }
 
+        post.setVocabularies(getVocabularyListByPostLink(post.getLink()));
         post.setSegments(segments);
         return post;
+    }
+
+    /* Get vocabulary list of post by the given link
+     * The link should be like this: http://www3.nhk.or.jp/news/easy/k10011374791000/k10011374791000.html
+     * The link is an official link of NEWS WEB EASY
+     * */
+    private Set<Vocabulary> getVocabularyListByPostLink(final String nhkEasyLink) throws IOException {
+        final Set<Vocabulary> vocabularyList = new LinkedHashSet<>();
+        final Document doc = Jsoup.connect(nhkEasyLink).get();
+        final Element newsArticle = doc.getElementById("newsarticle");
+
+        // Get JSON data link from the post link
+        final URL url = new URL(nhkEasyLink.replace(".html", ".out.json"));
+        final InputStreamReader reader = new InputStreamReader(url.openStream());
+        final VocabularyList jsonData = new Gson().fromJson(reader, VocabularyList.class);
+
+        newsArticle.select(".dicWin").forEach((element -> {
+            final Vocabulary vocabulary = new Vocabulary();
+            final Element rtElement = element.selectFirst("rt");
+            if (rtElement != null) {
+                vocabulary.setText(element.text().replace(rtElement.text(), ""));
+            } else {
+                vocabulary.setText(element.text());
+            }
+
+            // search in morph
+            for (final Morph morph : jsonData.getMorph()) {
+                if (morph.getWord().equals(vocabulary.getText())) {
+                    vocabulary.setText(morph.getBase());
+                    vocabulary.setHiragana(morph.getRuby().get(0).getR());
+                    vocabulary.setKatakana(morph.getKana());
+
+                    break;
+                }
+            }
+            if (!isExisted(vocabularyList, vocabulary)) {
+                // get vi-translation
+                vocabulary.setViTranslation(getViTranslation(vocabulary.getText()));
+
+                vocabularyList.add(vocabulary);
+            }
+        }));
+
+        return vocabularyList;
+    }
+
+    private boolean isExisted(final Set<Vocabulary> vocabularySet, final Vocabulary vocabulary) {
+        if (vocabularySet == null || vocabulary == null) return false;
+        else {
+            for (Vocabulary vocab : vocabularySet) {
+                if (vocab.getText().equals(vocabulary.getText())) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /**

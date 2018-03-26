@@ -6,6 +6,7 @@ import { PostService } from '../service/post.service';
 import { Post } from '../shared/models/Post';
 import { Segment } from '../shared/models/Segment';
 import { saveAs } from 'file-saver/FileSaver';
+import { Vocabulary } from "../shared/models/Vocabulary";
 
 @Component({
   selector: 'app-posts',
@@ -73,11 +74,19 @@ export class PostsComponent implements OnInit {
 
   buildTextContent(post: Post): string {
     let result: string = '';
+    let index: number = 0;
     for (let segment of post.segments) {
+      if (index == 1) {
+        result = result + this.buildVocabularyListText(post.vocabularies);
+        result = result + "\n";
+      }
+
       result = result + segment.text;
       result = result + "\n";
       result = result + segment.viTranslation;
       result = result + "\n\n";
+
+      index++;
     }
     result = result + post.link;
     result = result + "\n\n";
@@ -85,8 +94,17 @@ export class PostsComponent implements OnInit {
     return result;
   }
 
-  // buildHtmlContent(post: Post) {
-  //   return this.buildTextContent(post).replace(/(?:\r\n|\r|\n)/g, '<br />');
-  // }
+  buildVocabularyListText(vocabularyList: Vocabulary[]): string {
+    let result: string = '';
+    for (let vocab of vocabularyList) {
+      if (vocab.hiragana != null) {
+        result = result + vocab.text + ' - ' + vocab.hiragana + ': ' + vocab.viTranslation;
+      } else {
+        result = result + vocab.text + ': ' + vocab.viTranslation;
+      }
+      result = result + "\n";
+    }
+    return result;
+  }
 
 }

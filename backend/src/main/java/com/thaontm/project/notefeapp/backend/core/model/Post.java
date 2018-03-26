@@ -20,6 +20,10 @@ public class Post extends AbstractEntity {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "post")
     private Set<Segment> segments;
 
+    @JsonManagedReference
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "post")
+    private Set<Vocabulary> vocabularies;
+
     @Column(name = "nhk_easy_id", nullable = false)
     private String nhkEasyId;
 
@@ -85,6 +89,14 @@ public class Post extends AbstractEntity {
 
     public void setSegments(Set<Segment> segments) {
         this.segments = segments;
+    }
+
+    public Set<Vocabulary> getVocabularies() {
+        return vocabularies;
+    }
+
+    public void setVocabularies(Set<Vocabulary> vocabularies) {
+        this.vocabularies = vocabularies;
     }
 
     public String getNhkEasyId() {

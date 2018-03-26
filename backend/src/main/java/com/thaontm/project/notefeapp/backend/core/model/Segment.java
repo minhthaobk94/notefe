@@ -44,6 +44,7 @@ public class Segment extends AbstractEntity implements Serializable {
     }
 
     public Segment(long index, String text, Post post, SegmentType segmentType) {
+        super();
         this.index = index;
         this.text = text;
         this.post = post;
