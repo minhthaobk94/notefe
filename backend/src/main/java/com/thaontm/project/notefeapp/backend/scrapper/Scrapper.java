@@ -50,7 +50,7 @@ public class Scrapper {
         try {
             log.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
             this.posts = scrapePosts();
-        } catch (IOException | ParseException e) {
+        } catch (IOException | ParseException | NullPointerException e) {
             log.error(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
             log.error(e.getMessage());
         }
@@ -60,7 +60,7 @@ public class Scrapper {
         return this.posts;
     }
 
-    private List<Post> scrapePosts() throws IOException, ParseException {
+    private List<Post> scrapePosts() throws IOException, ParseException, NullPointerException {
         final List<Post> posts = new ArrayList<>();
         final Document doc = Jsoup.connect("https://www.reddit.com/r/NHKEasyNews/").get();
         final Elements segments = doc.select("div.entry > div.top-matter > p.title > a.title");
@@ -80,7 +80,7 @@ public class Scrapper {
         return posts;
     }
 
-    private Post getPostByLink(final String redditLink) throws IOException, ParseException {
+    private Post getPostByLink(final String redditLink) throws IOException, ParseException, NullPointerException {
         final Post post = new Post();
         final Set<Segment> segments = new HashSet<>();
         final Document doc = Jsoup.connect(redditLink).get();
@@ -130,7 +130,7 @@ public class Scrapper {
     private Set<Vocabulary> getVocabularyListByPostLink(final String nhkEasyLink) throws IOException {
         final Set<Vocabulary> vocabularyList = new LinkedHashSet<>();
         final Document doc = Jsoup.connect(nhkEasyLink).get();
-        final Element newsArticle = doc.getElementById("newsarticle");
+        final Element newsArticle = doc.getElementById("js-article-body");
 
         // Get JSON data link from the post link
         final URL url = new URL(nhkEasyLink.replace(".html", ".out.json"));
