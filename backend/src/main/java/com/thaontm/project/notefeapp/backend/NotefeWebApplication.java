@@ -1,18 +1,16 @@
 package com.thaontm.project.notefeapp.backend;
 
-import com.thaontm.project.notefeapp.backend.utils.TestData;
 import com.thaontm.project.notefeapp.backend.core.service.LanguageService;
 import com.thaontm.project.notefeapp.backend.core.service.PostService;
 import com.thaontm.project.notefeapp.backend.core.service.SegmentService;
 import com.thaontm.project.notefeapp.backend.core.service.SegmentTypeService;
+import com.thaontm.project.notefeapp.backend.utils.TestData;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.web.WebMvcRegistrationsAdapter;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -26,8 +24,6 @@ import java.lang.reflect.Method;
 
 @SpringBootApplication
 @EnableScheduling
-@EntityScan("com.thaontm.project.notefeapp.backend.core.model")
-@ComponentScan(basePackages = {"com.thaontm.project.notefecore", "com.thaontm.project.notefeapp"})
 public class NotefeWebApplication {
 
     @Value("${rest.api.base.path}")

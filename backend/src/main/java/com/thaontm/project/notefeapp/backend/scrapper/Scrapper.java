@@ -5,40 +5,45 @@ import com.google.cloud.translate.Translate.TranslateOption;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.thaontm.project.notefeapp.backend.core.model.Post;
 import com.thaontm.project.notefeapp.backend.core.model.Segment;
 import com.thaontm.project.notefeapp.backend.core.model.SegmentType;
-import com.thaontm.project.notefeapp.backend.core.model.Vocabulary;
-import com.thaontm.project.notefeapp.backend.json.Morph;
-import com.thaontm.project.notefeapp.backend.json.VocabularyList;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import com.thaontm.project.notefeapp.backend.utils.GsonUtils;
+import com.thaontm.project.notefeapp.backend.utils.StringUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 @Component
 public class Scrapper {
     private static final Logger log = LoggerFactory.getLogger(Scrapper.class);
+    private static final String NEWS_LIST_URL = "https://www3.nhk.or.jp/news/easy/news-list.json";
 
     private List<Post> posts;
 
-    public Scrapper() throws IOException, ParseException {
+    public Scrapper() {
         this.posts = scrapePosts();
     }
 
@@ -50,154 +55,105 @@ public class Scrapper {
         try {
             log.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
             this.posts = scrapePosts();
-        } catch (IOException | ParseException | NullPointerException e) {
+        } catch (NullPointerException e) {
             log.error(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
             log.error(e.getMessage());
         }
     }
 
     public List<Post> getPosts() {
+        if (CollectionUtils.isEmpty(posts)) {
+            return new ArrayList<>();
+        }
         return this.posts;
     }
 
-    private List<Post> scrapePosts() throws IOException, ParseException, NullPointerException {
-        final List<Post> posts = new ArrayList<>();
-        final Document doc = Jsoup.connect("https://www.reddit.com/r/NHKEasyNews/").get();
-        final Elements segments = doc.select("div.entry > div.top-matter > p.title > a.title");
-
-        final List<String> links = new ArrayList<>();
-        for (Element e : segments) {
-            final String link = e.absUrl("href");
-            if (link != null && !link.contains("discord_server")) {
-                links.add(link);
+    private List<Post> scrapePosts() {
+        List<Post> posts = new ArrayList<>();
+        try {
+            final String json = IOUtils.toString(new URL(NEWS_LIST_URL));
+            final JsonParser parser = new JsonParser();
+            final JsonElement element = parser.parse(json);
+            Set<Map.Entry<Date, List<DailyPost>>> postsSet = null;
+            if (element.isJsonArray()) {
+                final JsonArray array = element.getAsJsonArray();
+                if (array.get(0).isJsonObject()) {
+                    JsonElement childElement = array.get(0);
+                    if (childElement.isJsonObject()) {
+                        final JsonObject object = childElement.getAsJsonObject();
+                        postsSet = convert(object.entrySet());
+                    }
+                }
             }
-        }
-
-        for (final String link : links.subList(0, 10)) {
-            posts.add(getPostByLink(link));
+            if (postsSet != null) {
+                // get posts for the last date
+                Iterator<Map.Entry<Date, List<DailyPost>>> iterator = postsSet.iterator();
+                posts.addAll(convert(iterator.next()));
+                posts.addAll(convert(iterator.next()));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         return posts;
     }
 
-    private Post getPostByLink(final String redditLink) throws IOException, ParseException, NullPointerException {
-        final Post post = new Post();
-        final Set<Segment> segments = new HashSet<>();
-        final Document doc = Jsoup.connect(redditLink).get();
-
-        final Element postTitleElement = doc.selectFirst("div#siteTable")
-            .selectFirst("p.title")
-            .selectFirst("a.title.may-blank");
-        final Segment title = new Segment();
-        title.setText(postTitleElement.text());
-        title.setViTranslation(getViTranslation(title.getText().substring(13)));
-        log.info(title.getText());
-        log.info(title.getViTranslation());
-        title.setIndex(post.getSegmentIndex());
-        title.setSegmentType(new SegmentType("title"));
-        segments.add(title);
-        post.setSubmitted(extractDateFromTitle(postTitleElement.text()));
-        log.info(extractDateFromTitle(postTitleElement.text()).toString());
-
-        final Element contentBoxElement = doc.selectFirst("div#siteTable").selectFirst("div.md");
-        final String postLink = contentBoxElement.selectFirst("a").text();
-        post.setLink(postLink);
-        post.setNhkEasyId(extractIdFromLink(postLink));
-        log.info(postLink);
-
-        final Elements segmentsElements = contentBoxElement.getElementsByTag("p");
-        for (int i = 0; i < segmentsElements.size(); i++) {
-            if (!(i == 0 || i == segmentsElements.size() - 1 || segmentsElements.get(i).text().trim().length() == 0)) {
+    private List<Post> convert(final Map.Entry<Date, List<DailyPost>> entry) {
+        final List<Post> result = new ArrayList<>();
+        if (entry == null || entry.getKey() == null || entry.getValue() == null) {
+            return result;
+        }
+        for (final DailyPost dailyPost : entry.getValue()) {
+            final Post post = new Post(dailyPost.getNewsId(), dailyPost.getNewsWebUrl(), entry.getKey(), dailyPost.getNewsWebImageUri(), dailyPost.getNewsEasyVoiceUri());
+            final Set<Segment> segments = new LinkedHashSet<>();
+            final List<String> segmentSet = StringUtils.getInstance().breakPostToSegments(dailyPost.getTextContent());
+            long segmentIndex = 0;
+            for (final String s : segmentSet) {
                 final Segment segment = new Segment();
-                segment.setText(segmentsElements.get(i).text());
-                segment.setIndex(post.getSegmentIndex());
-                segment.setSegmentType(new SegmentType("body"));
-                segment.setViTranslation(getViTranslation(segment.getText()));
-
+                segment.setSegmentType(new SegmentType(segmentIndex == 0 ? "title" : "body"));
+                segment.setIndex(segmentIndex++);
+                segment.setText(s);
+                segment.setViTranslation(getViTranslation(s));
                 segments.add(segment);
             }
+            post.setSegments(segments);
+            // set default vocab list
+            post.setVocabularies(new HashSet<>());
+            result.add(post);
         }
-
-        post.setVocabularies(getVocabularyListByPostLink(post.getLink()));
-        post.setSegments(segments);
-        return post;
+        return result;
     }
 
-    /* Get vocabulary list of post by the given link
-     * The link should be like this: http://www3.nhk.or.jp/news/easy/k10011374791000/k10011374791000.html
-     * The link is an official link of NEWS WEB EASY
-     * */
-    private Set<Vocabulary> getVocabularyListByPostLink(final String nhkEasyLink) throws IOException {
-        final Set<Vocabulary> vocabularyList = new LinkedHashSet<>();
-        final Document doc = Jsoup.connect(nhkEasyLink).get();
-        final Element newsArticle = doc.getElementById("js-article-body");
-
-        // Get JSON data link from the post link
-        final URL url = new URL(nhkEasyLink.replace(".html", ".out.json"));
-        final InputStreamReader reader = new InputStreamReader(url.openStream());
-        final VocabularyList jsonData = new Gson().fromJson(reader, VocabularyList.class);
-
-        newsArticle.select(".dicWin").forEach((element -> {
-            final Vocabulary vocabulary = new Vocabulary();
-            final Element rtElement = element.selectFirst("rt");
-            if (rtElement != null) {
-                vocabulary.setText(element.text().replace(rtElement.text(), ""));
-            } else {
-                vocabulary.setText(element.text());
-            }
-
-            // search in morph
-            for (final Morph morph : jsonData.getMorph()) {
-                if (morph.getWord().equals(vocabulary.getText())) {
-                    vocabulary.setText(morph.getBase());
-                    vocabulary.setHiragana(morph.getRuby().get(0).getR());
-                    vocabulary.setKatakana(morph.getKana());
-
-                    break;
+    private Set<Entry<Date, List<DailyPost>>> convert(final Set<Map.Entry<String, JsonElement>> entrySet) {
+        final Set<Map.Entry<Date, List<DailyPost>>> result = new LinkedHashSet<>();
+        final Gson gson = GsonUtils.getGson();
+        entrySet.forEach(entry -> {
+            result.add(new Entry<Date, List<DailyPost>>() {
+                @Override
+                public Date getKey() {
+                    try {
+                        return new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(entry.getKey());
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                        return new Date(1970, 1, 1);
+                    }
                 }
-            }
-            if (!isExisted(vocabularyList, vocabulary)) {
-                // get vi-translation
-                vocabulary.setViTranslation(getViTranslation(vocabulary.getText()));
 
-                vocabularyList.add(vocabulary);
-            }
-        }));
-
-        return vocabularyList;
-    }
-
-    private boolean isExisted(final Set<Vocabulary> vocabularySet, final Vocabulary vocabulary) {
-        if (vocabularySet == null || vocabulary == null) return false;
-        else {
-            for (Vocabulary vocab : vocabularySet) {
-                if (vocab.getText().equals(vocabulary.getText())) {
-                    return true;
+                @Override
+                public List<DailyPost> getValue() {
+                    final JsonArray array = entry.getValue().getAsJsonArray();
+                    final List<DailyPost> posts = new ArrayList<>();
+                    array.forEach(e -> posts.add(gson.fromJson(e, DailyPost.class)));
+                    return posts;
                 }
-            }
-            return false;
-        }
-    }
 
-    /**
-     * link must be like this: http://www3.nhk.or.jp/news/easy/k10011339591000/k10011339591000.html.
-     */
-    private String extractIdFromLink(final String postLink) {
-        if (postLink == null) return "";
-        else {
-            return postLink.replace("http://www3.nhk.or.jp/news/easy/", "")
-                .replace(".html", "")
-                .split("/")[0];
-        }
-    }
-
-    /**
-     * @param title must be like this: [02/23/2018] 大林宣彦監督「広島に原爆が落とされるまでを映画にする」
-     * @return date from title
-     */
-    private Date extractDateFromTitle(final String title) throws ParseException {
-        final SimpleDateFormat format = new SimpleDateFormat("mm/DD/yyyy");
-        return format.parse(title.trim().split(" ")[0].substring(1, 11));
+                @Override
+                public List<DailyPost> setValue(final List<DailyPost> value) {
+                    return value;
+                }
+            });
+        });
+        return result;
     }
 
     private String getViTranslation(final String segmentText) {

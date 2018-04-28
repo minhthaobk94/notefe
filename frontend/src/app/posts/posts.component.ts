@@ -39,6 +39,14 @@ export class PostsComponent implements OnInit {
     return segment.text;
   }
 
+  getPostTitleWithDatePrefix(post: Post): string {
+    if (post != null) {
+      const submittedDate: Date = new Date(post.submitted);
+      return '[' + submittedDate.getDate() + '-' + (Number)(submittedDate.getMonth() + 1) + '-' + submittedDate.getFullYear() + ']' + this.getPostTitle(post);
+    }
+    return '';
+  }
+
   onSelect(post: Post) {
     this.selectedPost = post;
     this.translations = [];
@@ -59,7 +67,7 @@ export class PostsComponent implements OnInit {
 
   saveToFileSystem(content: string) {
     const blob = new Blob([content], {type: 'text/plain'});
-    saveAs(blob, this.selectedPost.segments[0].text + '.txt');
+    saveAs(blob, this.getPostTitleWithDatePrefix(this.selectedPost) + '.txt');
   }
 
   updateTranslations() {
