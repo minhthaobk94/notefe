@@ -4,4 +4,5 @@ export interface Vocabulary {
   hiragana: string;
   katakana: string;
   viTranslation: string;
+  classifier: string;
 }

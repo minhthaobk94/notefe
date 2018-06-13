@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SegmentController {
 
+    private final SegmentService segmentService;
+
     @Autowired
-    SegmentService segmentService;
+    public SegmentController(final SegmentService segmentService) {
+        this.segmentService = segmentService;
+    }
 
     @GetMapping(path = "/segment")
     public ResponseEntity<Iterable<Segment>> getSegments() {

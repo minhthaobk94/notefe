@@ -105,10 +105,10 @@ export class PostsComponent implements OnInit {
   buildVocabularyListText(vocabularyList: Vocabulary[]): string {
     let result: string = '';
     for (let vocab of vocabularyList) {
-      if (vocab.hiragana != null) {
-        result = result + vocab.text + ' - ' + vocab.hiragana + ': ' + vocab.viTranslation;
-      } else {
-        result = result + vocab.text + ': ' + vocab.viTranslation;
+      if (vocab != null && vocab.text != null && vocab.katakana != null && vocab.viTranslation != null) {
+        result = vocab.text == vocab.katakana
+          ? result + vocab.text + ': ' + vocab.viTranslation
+          : result + vocab.text + ' - ' + vocab.katakana + ': ' + vocab.viTranslation;
       }
       result = result + "\n";
     }

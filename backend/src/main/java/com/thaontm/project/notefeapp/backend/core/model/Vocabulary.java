@@ -1,6 +1,9 @@
 package com.thaontm.project.notefeapp.backend.core.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -25,6 +28,9 @@ public class Vocabulary extends AbstractEntity implements Serializable {
     @Column(name = "[vi_translation]")
     private String viTranslation;
 
+    @Column(name = "[classifier]")
+    private String classifier;
+
     @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "post_id", referencedColumnName = "id")
@@ -34,17 +40,18 @@ public class Vocabulary extends AbstractEntity implements Serializable {
         super();
     }
 
-    public Vocabulary(String text, String hiragana, String katakana, String viTranslation, Post post) {
+    public Vocabulary(String text, String hiragana, String katakana, String viTranslation, String classifier, Post post) {
         super();
         this.text = text;
         this.hiragana = hiragana;
         this.katakana = katakana;
         this.viTranslation = viTranslation;
+        this.classifier = classifier;
         this.post = post;
     }
 
     public String getText() {
-        return text;
+        return text == null ? null : text.trim();
     }
 
     public void setText(String text) {
@@ -75,6 +82,14 @@ public class Vocabulary extends AbstractEntity implements Serializable {
         this.viTranslation = viTranslation;
     }
 
+    public String getClassifier() {
+        return classifier;
+    }
+
+    public void setClassifier(final String classifier) {
+        this.classifier = classifier;
+    }
+
     public Post getPost() {
         return post;
     }
@@ -85,13 +100,40 @@ public class Vocabulary extends AbstractEntity implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Vocabulary{");
-        sb.append("text='").append(text).append('\'');
-        sb.append(", hiragana='").append(hiragana).append('\'');
-        sb.append(", katakana='").append(katakana).append('\'');
-        sb.append(", viTranslation='").append(viTranslation).append('\'');
-        sb.append(", post=").append(post);
-        sb.append('}');
-        return sb.toString();
+        return new ToStringBuilder(this)
+            .append("text", text)
+            .append("hiragana", hiragana)
+            .append("katakana", katakana)
+            .append("viTranslation", viTranslation)
+            .append("classifier", classifier)
+            .append("post", post)
+            .toString();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+
+        if (!(o instanceof Vocabulary)) return false;
+
+        final Vocabulary that = (Vocabulary) o;
+
+        // only text is enough
+        return new EqualsBuilder()
+            .append(getText(), that.getText())
+            .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+            .appendSuper(super.hashCode())
+            .append(getText())
+            .append(getHiragana())
+            .append(getKatakana())
+            .append(getViTranslation())
+            .append(getClassifier())
+            .append(getPost())
+            .toHashCode();
     }
 }

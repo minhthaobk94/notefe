@@ -1,9 +1,12 @@
 package com.thaontm.project.notefeapp.backend.scrapper;
 
+import com.atilika.kuromoji.ipadic.Token;
+import com.atilika.kuromoji.ipadic.Tokenizer;
 import com.google.cloud.translate.Translate;
 import com.google.cloud.translate.Translate.TranslateOption;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
+import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -12,6 +15,7 @@ import com.google.gson.JsonParser;
 import com.thaontm.project.notefeapp.backend.core.model.Post;
 import com.thaontm.project.notefeapp.backend.core.model.Segment;
 import com.thaontm.project.notefeapp.backend.core.model.SegmentType;
+import com.thaontm.project.notefeapp.backend.core.model.Vocabulary;
 import com.thaontm.project.notefeapp.backend.utils.GsonUtils;
 import com.thaontm.project.notefeapp.backend.utils.StringUtils;
 import org.apache.commons.io.IOUtils;
@@ -26,6 +30,8 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,16 +41,26 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Component
 public class Scrapper {
     private static final Logger log = LoggerFactory.getLogger(Scrapper.class);
     private static final String NEWS_LIST_URL = "https://www3.nhk.or.jp/news/easy/news-list.json";
+    private static final Set<String> CLASSIFIER_SET = new HashSet<>(Arrays.asList("形容詞", "動詞", "名詞"));
 
     private List<Post> posts;
 
     public Scrapper() {
         this.posts = scrapePosts();
+    }
+
+    private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
     /**
@@ -104,7 +120,12 @@ public class Scrapper {
             return result;
         }
         for (final DailyPost dailyPost : entry.getValue()) {
-            final Post post = new Post(dailyPost.getNewsId(), dailyPost.getNewsWebUrl(), entry.getKey(), dailyPost.getNewsWebImageUri(), dailyPost.getNewsEasyVoiceUri());
+            final Post post = new Post(
+                dailyPost.getNewsId(),
+                dailyPost.getNewsWebUrl(),
+                entry.getKey(),
+                dailyPost.getNewsWebImageUri(),
+                dailyPost.getNewsEasyVoiceUri());
             final Set<Segment> segments = new LinkedHashSet<>();
             final List<String> segmentSet = StringUtils.getInstance().breakPostToSegments(dailyPost.getTextContent());
             long segmentIndex = 0;
@@ -118,7 +139,8 @@ public class Scrapper {
             }
             post.setSegments(segments);
             // set default vocab list
-            post.setVocabularies(new HashSet<>());
+            post.setVocabularies(getVocabularyList(dailyPost.getTextContent()));
+
             result.add(post);
         }
         return result;
@@ -127,32 +149,30 @@ public class Scrapper {
     private Set<Entry<Date, List<DailyPost>>> convert(final Set<Map.Entry<String, JsonElement>> entrySet) {
         final Set<Map.Entry<Date, List<DailyPost>>> result = new LinkedHashSet<>();
         final Gson gson = GsonUtils.getGson();
-        entrySet.forEach(entry -> {
-            result.add(new Entry<Date, List<DailyPost>>() {
-                @Override
-                public Date getKey() {
-                    try {
-                        return new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(entry.getKey());
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                        return new Date(1970, 1, 1);
-                    }
+        entrySet.forEach(entry -> result.add(new Entry<Date, List<DailyPost>>() {
+            @Override
+            public Date getKey() {
+                try {
+                    return new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(entry.getKey());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    return new Date(1970, 1, 1);
                 }
+            }
 
-                @Override
-                public List<DailyPost> getValue() {
-                    final JsonArray array = entry.getValue().getAsJsonArray();
-                    final List<DailyPost> posts = new ArrayList<>();
-                    array.forEach(e -> posts.add(gson.fromJson(e, DailyPost.class)));
-                    return posts;
-                }
+            @Override
+            public List<DailyPost> getValue() {
+                final JsonArray array = entry.getValue().getAsJsonArray();
+                final List<DailyPost> posts = new ArrayList<>();
+                array.forEach(e -> posts.add(gson.fromJson(e, DailyPost.class)));
+                return posts;
+            }
 
-                @Override
-                public List<DailyPost> setValue(final List<DailyPost> value) {
-                    return value;
-                }
-            });
-        });
+            @Override
+            public List<DailyPost> setValue(final List<DailyPost> value) {
+                return value;
+            }
+        }));
         return result;
     }
 
@@ -177,5 +197,37 @@ public class Scrapper {
             .setApiKey("api_key")
             .build()
             .getService();
+    }
+
+    /**
+     * Get vocabulary list base on Kuromoji
+     *
+     * @param fullText the news content
+     * @return the list of {@link Vocabulary}
+     */
+    private Set<Vocabulary> getVocabularyList(final String fullText) {
+        if (Strings.isNullOrEmpty(fullText)) {
+            return Collections.emptySet();
+        }
+
+        final Set<Vocabulary> result = new HashSet<>();
+        final Tokenizer tokenizer = new Tokenizer();
+        final List<Token> tokens = tokenizer.tokenize(fullText);
+
+        tokens.forEach(t -> {
+            if (!Strings.isNullOrEmpty(t.getBaseForm())
+                && CLASSIFIER_SET.contains(t.getPartOfSpeechLevel1())
+                && t.getBaseForm().length() >= 3) {
+                result.add(new Vocabulary(
+                    t.getBaseForm(),
+                    null,
+                    t.getReading(), // reading kata
+                    getViTranslation(t.getBaseForm()),
+                    t.getPartOfSpeechLevel1(),
+                    null));
+            }
+        });
+
+        return result.stream().filter(distinctByKey(Vocabulary::getKatakana)).collect(Collectors.toSet());
     }
 }
